@@ -86,7 +86,7 @@ def auto_norm(data_set):
 
 def dating_class_test():
     """
-    现在错误率
+    计算错误率
     :return:
     """
     mat, _labels = file_to_matrix('./datingTestSet.txt')
