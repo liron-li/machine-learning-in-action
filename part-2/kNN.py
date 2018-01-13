@@ -1,6 +1,6 @@
 import numpy as np
 import operator
-import matplotlib as mpl
+import os
 import matplotlib.pyplot as plt
 
 
@@ -100,6 +100,47 @@ def dating_class_test():
     print("the total error rate is： %f" % (error_count / float(mat.shape[0])))
 
 
+def img2vector(file_path):
+    """
+    转换图片为向量
+    :param file_path:
+    :return:
+    """
+    vector = np.zeros((1, 32 * 32))
+    with open(file_path, 'r') as f:
+        for i in range(32):
+            line_str = f.readline()
+            for j in range(32):
+                vector[0, 32 * i + j] = int(line_str[j])
+    return vector
+
+
+def hand_writing_class_test():
+    """
+    手写数字识别
+    :return:
+    """
+    _labels = []
+    files = os.listdir('./trainingDigits')
+    files_count = len(files)
+    arr = np.zeros((files_count, 32 * 32))
+    index = 0
+    for file in files:
+        v = img2vector('./trainingDigits/%s' % file)
+        arr[index, :] = np.array(v)
+        _labels.append(file.split('_')[0])
+        index += 1
+
+    files = os.listdir('./testDigits')
+    error_count = 0
+    for file in files:
+        v = img2vector('./testDigits/%s' % file)
+        classifier_res = classify0(v, arr, _labels, 3)
+        if classifier_res != file.split('_')[0]:
+            error_count += 1
+    print("the total error rate is： %f" % (error_count / float(len(files))))
+
+
 if __name__ == '__main__':
     group, labels = create_data_set()
     # return 'B'
@@ -111,3 +152,4 @@ if __name__ == '__main__':
     ax.scatter(mat[:, 0], mat[:, 1], 15.0 * np.array(labels).astype(np.int32), 15.0 * np.array(labels).astype(np.int32))
     # plt.show()
     dating_class_test()
+    hand_writing_class_test()
