@@ -127,6 +127,7 @@ def hand_writing_class_test():
     index = 0
     for file in files:
         v = img2vector('./trainingDigits/%s' % file)
+        # 数组切片：arr_name[行操作, 列操作]
         arr[index, :] = np.array(v)
         _labels.append(file.split('_')[0])
         index += 1
