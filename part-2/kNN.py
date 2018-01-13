@@ -1,5 +1,7 @@
 import numpy as np
 import operator
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 
 
 def create_data_set():
@@ -7,9 +9,9 @@ def create_data_set():
     生成数据集
     :return:
     """
-    group = np.array([[1.0, 1.1], [1.0, 1.0], [0, 0], [0, 0.1]])
-    labels = ['A', 'A', 'B', 'B']
-    return group, labels
+    _group = np.array([[1.0, 1.1], [1.0, 1.0], [0, 0], [0, 0.1]])
+    _labels = ['A', 'A', 'B', 'B']
+    return _group, _labels
 
 
 def classify0(in_x, data_set, labels, k):
@@ -19,7 +21,7 @@ def classify0(in_x, data_set, labels, k):
     :param data_set: 训练样本集
     :param labels: 标签向量
     :param k: 用于选择最近邻居的数目
-    :return: 最近的邻居标签
+    :return:
     """
     # 返回每个维度中数组大小的元祖
     data_set_size = data_set.shape[0]
@@ -45,8 +47,67 @@ def classify0(in_x, data_set, labels, k):
     return sorted_class_count[0][0]
 
 
+def file_to_matrix(file_path):
+    """
+    文件转换数据集
+    :param file_path: 文件路径
+    :return:
+    """
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+        number_of_lines = len(lines)
+        return_mat = np.zeros((number_of_lines, 3))
+        class_label_vector = []
+        index = 0
+        for line in lines:
+            line = line.strip()
+            list_from_line = line.split('\t')
+            return_mat[index, :] = list_from_line[0:3]
+            class_label_vector.append(list_from_line[-1])
+            index += 1
+        return return_mat, class_label_vector
+
+
+def auto_norm(data_set):
+    """
+    归一化特征值 （将特征值转换成0到1的区间）
+    :param data_set:
+    :return:
+    """
+    min_values = data_set.min(0)  # 获取每一列的最小值 0：列 1：行
+    max_values = data_set.max(0)
+    _ranges = max_values - min_values
+    m = data_set.shape[0]  # 数据集的行数
+    # 套公式： newValue = (oldValue - min) / (max - min)
+    norm_data_set = data_set - np.tile(min_values, (m, 1))
+    norm_data_set = norm_data_set / np.tile(_ranges, (m, 1))
+    return norm_data_set, _ranges, min_values
+
+
+def dating_class_test():
+    """
+    现在错误率
+    :return:
+    """
+    mat, _labels = file_to_matrix('./datingTestSet.txt')
+    norm_mat, ranges, min_values = auto_norm(mat)
+    error_count = 0
+    for i in range(norm_mat.shape[0]):
+        classifier_res = classify0(norm_mat[i, :], norm_mat, _labels, 3)
+        # print("the classifier came back with: %s, the real answer is： %s" % (classifier_res, _labels[i]))
+        if classifier_res != _labels[i]:
+            error_count += 1
+    print("the total error rate is： %f" % (error_count / float(mat.shape[0])))
+
+
 if __name__ == '__main__':
     group, labels = create_data_set()
     # return 'B'
     res = classify0([0, 0], group, labels, 3)
     print(res)
+    mat, labels = file_to_matrix('./datingTestSet2.txt')
+    fig = plt.figure()  # 创建一个图形
+    ax = fig.add_subplot(111)  # 添加子图 111：分割为1行一列选择第一块
+    ax.scatter(mat[:, 0], mat[:, 1], 15.0 * np.array(labels).astype(np.int32), 15.0 * np.array(labels).astype(np.int32))
+    # plt.show()
+    dating_class_test()
