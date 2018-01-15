@@ -120,8 +120,8 @@ def create_tree(data_set, labels):
 def plot_node(node_txt, center_pt, parent_pt, node_type):
     arrow_args = dict(arrowstyle='<-')
     create_plot.ax1.annotate(node_txt, xy=parent_pt, xycoords='axes fraction', xytext=center_pt,
-                           textcoords='axes fraction', va='center', ha='center', bbox=node_type,
-                           arrowprops=arrow_args)
+                             textcoords='axes fraction', va='center', ha='center', bbox=node_type,
+                             arrowprops=arrow_args)
 
 
 def create_plot():
