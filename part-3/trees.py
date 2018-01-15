@@ -4,7 +4,7 @@ import operator
 
 def calc_shannon_ent(data_set):
     """
-    计算香农熵
+    计算香农熵 一个事件的信息量就是这个事件发生的概率的负对数
     :param data_set:
     :return:
     """
@@ -33,7 +33,7 @@ def create_data_set():
         [1, 1, 'yes'],
         [1, 0, 'no'],
         [0, 1, 'no'],
-        [0, 1, 'no'],
+        [0, 1, 'no']
     ]
     labels = ['no surfacing', 'flippers']
     return data_set, labels
@@ -50,6 +50,7 @@ def split_data_set(data_set, axis, value):
     ret_data_set = []
     for feat_vec in data_set:
         if feat_vec[axis] == value:
+            # 相当于移除了 axis 的数据， 例如: 当feat_vec = [1, 2, 3] axis = 1 value = 2 时， 取出的结果为 [1, 3]
             reduced_feat_vec = feat_vec[:axis]
             reduced_feat_vec.extend(feat_vec[axis + 1:])
             ret_data_set.append(reduced_feat_vec)
@@ -66,16 +67,16 @@ def choose_best_feature_to_split(data_set):
     base_ent = calc_shannon_ent(data_set)
     bast_info_gain = 0.0
     best_feature = -1
-    for i in range(num_features):
-        feat_list = [x[i] for x in data_set]
-        unique_values = set(feat_list)
+    for i in range(num_features):  # 循环 len(data_set[0]) - 1 次找出最佳的划分索引值
+        feat_list = [x[i] for x in data_set]  # 取出第i列的所有值
+        unique_values = set(feat_list)  # 去重
         new_entropy = 0.0
         for value in unique_values:
-            sub_data_set = split_data_set(data_set, i, value)
+            sub_data_set = split_data_set(data_set, i, value)  # 返回的是 data_set 中每个元素移除第i列后的列表 （如果第i列不等于value 则不返回）
             prob = len(sub_data_set) / float(len(data_set))
             new_entropy += prob * calc_shannon_ent(sub_data_set)
         info_gain = base_ent - new_entropy
-        if info_gain > bast_info_gain:
+        if info_gain > bast_info_gain:  # 选出熵增最小的划分列 （也就是最能准确划分数据集的列）
             bast_info_gain = info_gain
             best_feature = i
     return best_feature
