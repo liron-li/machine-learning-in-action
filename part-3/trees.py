@@ -96,7 +96,7 @@ def majority_cnt(class_list):
     return sorted_class_count[0][0]
 
 
-def create_tree(data_set, labels):
+def create_tree(data_set, input_labels):
     """
     创建树
     :param data_set:
@@ -109,13 +109,13 @@ def create_tree(data_set, labels):
     if len(data_set[0]) == 1:
         return majority_cnt(class_list)
     best_feat = choose_best_feature_to_split(data_set)
-    best_feat_label = labels[best_feat]
+    best_feat_label = input_labels[best_feat]
     my_tree = {best_feat_label: {}}
-    del (labels[best_feat])
+    del (input_labels[best_feat])
     feat_values = [x[best_feat] for x in data_set]
     unique_values = set(feat_values)
     for value in unique_values:
-        sub_labels = labels[:]
+        sub_labels = input_labels[:]
         my_tree[best_feat_label][value] = create_tree(split_data_set(data_set, best_feat, value), sub_labels)
     return my_tree
 
@@ -205,8 +205,23 @@ def plot_tree(my_tree, parent_pt, node_txt):  # if the first key tells you what 
     plot_tree.yOff = plot_tree.yOff + 1.0 / plot_tree.totalD
 
 
+def classify(input_tree, feat_labels, test_vec):
+    first_str = list(input_tree.keys())[0]
+    second_dict = input_tree[first_str]
+    feat_index = feat_labels.index(first_str)
+    class_label = -1
+    for key in second_dict.keys():
+        if test_vec[feat_index] == key:
+            if type(second_dict[key]).__name__ == 'dict':
+                class_label = classify(second_dict[key], feat_labels, test_vec)
+            else:
+                class_label = second_dict[key]
+    return class_label
+
+
 if __name__ == '__main__':
     data_set, labels = create_data_set()
+    _labels = labels[:]
     my_tree = create_tree(data_set, labels)
-    print(my_tree)
-    create_plot(my_tree)
+    # create_plot(my_tree)
+    print(classify(my_tree, _labels, [1, 1]))
