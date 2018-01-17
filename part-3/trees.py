@@ -2,6 +2,9 @@ import math
 import operator
 import matplotlib.pyplot as plt
 
+decision_node = dict(boxstyle='sawtooth', fc='0.8')
+leaf_node = dict(boxstyle='round4', fc='0.8')
+
 
 def calc_shannon_ent(data_set):
     """
@@ -124,19 +127,86 @@ def plot_node(node_txt, center_pt, parent_pt, node_type):
                              arrowprops=arrow_args)
 
 
-def create_plot():
-    decision_node = dict(boxstyle='sawtooth', fc='0.8')
-    leaf_node = dict(boxstyle='round4', fc='0.8')
+def create_plot(inTree):
+    plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
+    plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
     fig = plt.figure(1, facecolor='white')
     fig.clf()
-    create_plot.ax1 = plt.subplot(111, frameon=False)
-    plot_node("决策节点", (0.5, 0.1), (0.1, 0.5), decision_node)
-    plot_node("叶节点", (0.8, 0.1), (0.3, 0.8), leaf_node)
+    axprops = dict(xticks=[], yticks=[])
+    create_plot.ax1 = plt.subplot(111, frameon=False, **axprops)  # no ticks
+    # createPlot.ax1 = plt.subplot(111, frameon=False) #ticks for demo puropses
+    plot_tree.totalW = float(get_num_leafs(inTree))
+    plot_tree.totalD = float(get_tree_depth(inTree))
+    plot_tree.xOff = -0.5 / plot_tree.totalW
+    plot_tree.yOff = 1.0
+    plot_tree(inTree, (0.5, 1.0), '')
     plt.show()
+
+
+def get_num_leafs(tree):
+    """
+    获取叶子节点的数目
+    :param tree:
+    :return:
+    """
+    num = 0
+    first_str = list(tree.keys())[0]
+    second_dict = tree[first_str]
+    for key in second_dict.keys():
+        if type(second_dict[key]).__name__ == 'dict':
+            num += get_num_leafs(second_dict[key])
+        else:
+            num += 1
+    return num
+
+
+def get_tree_depth(tree):
+    """
+    获取字典深度
+    :param tree:
+    :return:
+    """
+    depth = 0
+    first_str = list(tree.keys())[0]
+    second_dict = tree[first_str]
+    for key in second_dict.keys():
+        if type(second_dict[key]).__name__ == 'dict':
+            this_depth = 1 + get_tree_depth(second_dict[key])
+        else:
+            this_depth = 1
+        if this_depth > depth:
+            depth = this_depth
+    return depth
+
+
+def plot_mid_text(cntrPt, parentPt, txtString):
+    xMid = (parentPt[0] - cntrPt[0]) / 2.0 + cntrPt[0]
+    yMid = (parentPt[1] - cntrPt[1]) / 2.0 + cntrPt[1]
+    create_plot.ax1.text(xMid, yMid, txtString, va="center", ha="center", rotation=30)
+
+
+def plot_tree(my_tree, parent_pt, node_txt):  # if the first key tells you what feat was split on
+    num_leafs = get_num_leafs(my_tree)  # this determines the x width of this tree
+    depth = get_tree_depth(my_tree)
+    first_str = list(my_tree.keys())[0]  # the text label for this node should be this
+    cntrPt = (plot_tree.xOff + (1.0 + float(num_leafs)) / 2.0 / plot_tree.totalW, plot_tree.yOff)
+    plot_mid_text(cntrPt, parent_pt, node_txt)
+    plot_node(first_str, cntrPt, parent_pt, decision_node)
+    second_dict = my_tree[first_str]
+    plot_tree.yOff = plot_tree.yOff - 1.0 / plot_tree.totalD
+    for key in second_dict.keys():
+        # test to see if the nodes are dictonaires, if not they are leaf nodes
+        if type(second_dict[key]).__name__ == 'dict':
+            plot_tree(second_dict[key], cntrPt, str(key))  # recursion
+        else:  # it's a leaf node print the leaf node
+            plot_tree.xOff = plot_tree.xOff + 1.0 / plot_tree.totalW
+            plot_node(second_dict[key], (plot_tree.xOff, plot_tree.yOff), cntrPt, leaf_node)
+            plot_mid_text((plot_tree.xOff, plot_tree.yOff), cntrPt, str(key))
+    plot_tree.yOff = plot_tree.yOff + 1.0 / plot_tree.totalD
 
 
 if __name__ == '__main__':
     data_set, labels = create_data_set()
     my_tree = create_tree(data_set, labels)
     print(my_tree)
-    create_plot()
+    create_plot(my_tree)
