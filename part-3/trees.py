@@ -225,3 +225,9 @@ if __name__ == '__main__':
     my_tree = create_tree(data_set, labels)
     # create_plot(my_tree)
     print(classify(my_tree, _labels, [1, 1]))
+
+    with open('./lenses.txt') as f:
+        lenses = [x.strip().split('\t') for x in f.readlines()]
+        lenses_labels = ['age', 'prescript', 'astigmatic', 'tearRate']
+        lenses_tree = create_tree(lenses, lenses_labels)
+        create_plot(lenses_tree)
